@@ -10,14 +10,20 @@ const sequelize = new Sequelize('project2', username, password, {
     dialect: 'mysql'
 });
 
-database = () => {
-    sequelize.authenticate().then(() => {
+const database = async () => {
+    try{
+        await sequelize.authenticate()
         console.log("Connection Established!");
-    }).catch((err) => {
-        console.log("Error connecting to database!");
-    });
+
+        const User = UserModel(Sequelize, sequelize);
+
+        return {User};
+    }
+    catch(err){
+        console.log("Error connecting to database:", err);
+    };
 
 }
-const User = UserModel(Sequelize, sequelize);
 
-module.exports = { database, User};
+
+module.exports = database;

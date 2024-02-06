@@ -10,31 +10,31 @@ plugins:
 
 functions:
   createUser2:
-    handler: modules/createuser.userdata
+    handler: controller/handlers.newUser
     events:
       - httpApi:
           path: /users/create
           method: post
   getAll:
-    handler: modules/getAllUser.userdata
+    handler: controller/handlers.allUsers
     events:
       - httpApi:
           path: /users
           method: get
   getUser:
-    handler: modules/getUser.userdata
+    handler: controller/handlers.getUser
     events:
       - httpApi:
           path:  /users/find/{email}
           method: get
   updateUser:
-    handler: modules/updateuser.userdata
+    handler: controller/handlers.updateData
     events:
       - httpApi:
           path:  /users/update/{user_id}
           method: patch
   deleteUser:
-    handler: modules/deleteuser.userdata
+    handler: controller/handlers.deleteUser
     events:
       - httpApi:
           path:  /users/delete/{user_id}

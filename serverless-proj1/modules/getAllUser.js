@@ -1,6 +1,6 @@
 const {database, User} = require('../database.js');
 const {UserModel} = require('../controller/user.js');
-const {response} = require('../helper/helper.js');
+const {response, res2} = require('../helper/helper.js');
 
 module.exports.userdata = async (event) => {
   await database();
@@ -8,7 +8,7 @@ module.exports.userdata = async (event) => {
         userObj = await User.findAll();
 
         if (userObj) {
-            return response(201, userObj, "Data Found");
+            return res2(201, userObj, "Data Found");
         }
         else {
             return response(404, "", "Data is not found")

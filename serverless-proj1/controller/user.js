@@ -9,7 +9,7 @@ module.exports.UserModel = (Sequelize, sequelize) => {
         type: Sequelize.STRING,
         validate: {
             isAlpha: true,
-            len: [4,10]
+            len: [4, 15]
         }
     },
     email: {
