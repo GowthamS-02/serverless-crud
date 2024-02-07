@@ -1,132 +1,112 @@
 const database = require('../database.js');
-const { response, validInput, res2 } = require('../helper/helper.js');
+const { response, res2 } = require('../helper/helper.js');
+const { validInput } = require('../helper/validation.js')
+const message = require('../helper/message.js')
 
-module.exports.newUser = async (event) => {
-  const models = await database();
-  try {
-    if ((event.body) !== null) {
-      const { name, email, password } = JSON.parse(event.body);
-      //validation
-      let validation = await validInput(name, email, password);
-      console.log(validation);
-      if (!validation) {
-
-        const { User } = models;
-
-        let userObj = {
-          name,
-          email,
-          password
-        }
-        let newUser = await User.create(userObj);
-        return response(201, newUser, "New user Created");
-      }
-      else {
-        return response(400, "", validation);
-      }
-    } else {
-      return response(400, " ", "Enter User data")
-    }
-
-  }
-  catch (error) {
-    console.log(error);
-    return response(error.statusCode, { error: error.message }, error);
-  }
-};
-
-
-
-module.exports.allUsers = async (event) => {
+module.exports.createNewUser = async (event) => {
   const models = await database();
   const { User } = models;
   try {
-    let userObj = await User.findAll();
-
-    if (userObj) {
-      return res2(201, userObj, "Data Found");
-    }
-    else {
-      return response(404, "", "Data is not found")
+    if ((event.body) === null) {
+      return response(400, " ", message.ENTER_DATA);
     }
 
-  }
-  catch (error) {
-    console.log(error);
-    return response(error.statusCode, { error: error.message }, error);
-
-  }
-};
-
-module.exports.getUser = async (event) => {
-  const models = await database();
-  const { User } = models;
-  try {
-    const { email } = event.pathParameters;
-    let userObj = await User.findOne({ where: { email } });
-
-    if (userObj) {
-      return res2(201, userObj, "Data Found");
-    }
-    else {
-      return response(404, "", "Requested user is not found")
-    }
-
-  }
-  catch (error) {
-    console.log(error);
-    return response(error.statusCode, { error: error.message }, error);
-
-  }
-};
-
-
-module.exports.updateData = async (event) => {
-  const models = await database();
-  const { User } = models;
-  try {
-    const { user_id } = event.pathParameters;
     const { name, email, password } = JSON.parse(event.body);
     //validation
-console.log(name);
+    let validation = await validInput(name, email, password);
+    console.log(validation);
+
+    if (validation) {
+      return response(400, "", validation);
+    }
+
     let userObj = {
       name,
       email,
       password
     };
+    let newUser = await User.create(userObj);
+    return response(201, newUser, message.USER_CREATE);
+  }
+  catch (error) {
+    console.log(error);
+    return response(404, error, error);
+  }
+};
 
-    if (userObj) {
-      let updateUser = await User.update(userObj, { where: { user_id } });
-      return response(201, updateUser, "Data Updated");
+module.exports.getAllUsers = async (event) => {
+  const models = await database();
+  const { User } = models;
+  try {
+    let userObj = await User.findAll({ attributes: [['name', 'Username'], ['email', 'User-mail']], where: { is_deleted: 0 }, order: [['name', 'ASC']] });
+    if ((userObj.length) === 0) {
+      return response(200, "", message.NO_DATA);
     }
-    else {
-      return response(404, "", "Requested user is not found")
-    }
+    return res2(201, userObj, message.FOUND_DATA);
   }
   catch (error) {
     console.log(error);
     return response(error.statusCode, { error: error.message }, error);
-
   }
 };
 
+module.exports.getSingleUser = async (event) => {
+  const models = await database();
+  const { User } = models;
+  try {
+    const { email } = event.pathParameters;
+    let userObj = await User.findOne({ attributes: [['name', 'Username'], ['email', 'User-mail']], where: { email, is_deleted: 0 } });
+
+    if (!userObj) {
+      return response(404, "", message.REQ_NOT_FOUND);
+    }
+    return res2(201, userObj, message.FOUND_DATA);
+  }
+  catch (error) {
+    console.log(error);
+    return response(404, error, error);
+  }
+};
+
+module.exports.updateUserData = async (event) => {
+  const models = await database();
+  const { User } = models;
+  try {
+    const { user_id } = event.pathParameters;
+    const UserId = await User.findOne({ where: { user_id, is_deleted: 0 } });
+    if (!UserId) {
+      return response(404, "", message.REQ_NOT_FOUND);
+    }
+
+    const { name, email, password } = JSON.parse(event.body);
+    //validation
+    let userObj = { name, email, password };
+
+    let updateUser = await User.update(userObj, { where: { user_id } });
+    return response(201, updateUser, message.DATA_UPDATE);
+  }
+  catch (error) {
+    console.log(error);
+    return response(404, error, error);
+  }
+};
 
 module.exports.deleteUser = async (event) => {
   const models = await database();
   const { User } = models;
   try {
     const { user_id } = event.pathParameters;
-   let userObj = await User.destroy( { where: { user_id } });
-    
-    if (userObj) {
-        return response(201, userObj, "Data Deleted");
+    const UserId = await User.findOne({ where: { user_id, is_deleted: 0 } });
+    if (!UserId) {
+      return response(404, "", message.REQ_NOT_FOUND);
     }
-    else {
-        return response(404, "", "Requested user is not found")
-    }
+
+    let userObj = await User.update({ is_deleted: 1 }, { where: { user_id } });
+
+    return response(201, userObj, message.DATA_DELETE);
   }
   catch (error) {
     console.log(error);
-    return response(error.statusCode, { error: error.message }, error);
+    return response(404, error, error);
   }
 };
