@@ -1,12 +1,10 @@
 module.exports.response = (code, data, msg) => {
-    return {
-        statusCode: code,
-        body: msg
+    let result = msg;
+    if(data){
+        result = JSON.stringify(data);
     }
-}
-module.exports.res2 = (code, data, msg) => {
     return {
         statusCode: code,
-        body: JSON.stringify(data)
+        body: result
     }
 }
